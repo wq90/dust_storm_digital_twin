@@ -1,0 +1,515 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Dust</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"
+        integrity="sha512-M7nHCiNUOwFt6Us3r8alutZLm9qMt4s9951uo8jqO4UwJ1hziseL6O3ndFyigx6+LREfZqnhHxYjKRJ8ZQ69DQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="../static/js/geojson.js"></script>
+    <script src="../static/js/dust.js"></script>
+    <script src="../static/js/map.js"></script>
+    <script src="../static/js/editor.js"></script>
+    <script src="../static/js/comparison.js"></script>
+
+    <style>
+        :root {
+            --lat-right: 0;
+            --lat-top: 0;
+            --lat-length: 0;
+            --lat-height: 0;
+            --lon-right: 0;
+            --lon-top: 0;
+            --lon-length: 0;
+            --lon-height: 0;
+            --margin-top: 5;
+            --margin-middle: 20;
+            --margin-right: 10;
+            --slng: -1;
+            --slat: -1;
+        }
+        body {
+            margin: 0;
+            overflow-x: hidden;
+            /* font: 0.9em/1.2 Arial, Helvetica, sans-serif; */
+            position: relative;
+        }
+        #map {
+            height: 100vh;
+            position: relative;
+        }
+        #lat_slice {
+            position: absolute;
+            top: var(--lat-top);
+            right: var(--lat-right);
+            height: var(--lat-height);
+            width: var(--lat-length);
+            z-index: 9999;
+            background-color: whitesmoke;
+        }
+        #lng_slice {
+            position: absolute;
+            top: var(--lon-top);
+            right: var(--lon-right);
+            height: var(--lon-height);
+            width: var(--lon-length);
+            z-index: 9999;
+            background-color: whitesmoke;
+        }
+        button.link {
+            background: none;
+            border: none;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            font-size: 13px;
+        }
+        button.time {
+            background: none;
+            border: none;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            font-size: 20px;
+        }
+        .menu {
+            position: absolute;
+            bottom: 5px;
+            left: 10px;
+            background-color: rgba(0, 0, 0, .8);
+            width: 300px;
+            height: 200px;
+            z-index: 9999;
+        }
+        #rf_div {
+            right: 10px;
+            bottom: 3px;
+            position: absolute;
+            z-index: 9999;
+        }
+        .model-comparision-hidden {
+            display: none;
+        }
+        .model-comparision-visible {
+            /* right: 50px;
+            top: 140px; */
+            right: 10px;
+            top: 250px;
+            position: absolute;
+            z-index: 9999;
+            line-height: 0;
+        }
+        #select_btn_0 {
+            position: absolute;
+            bottom: 10px;
+            left: 200px;
+            z-index: 1;
+        }
+        #select_btn_1 {
+            position: absolute;
+            bottom: 10px;
+            right: 210px;
+            z-index: 1;
+        }
+        #timeSeries_div {
+            right: 619px;
+            bottom: 3px;
+            position: absolute;
+            z-index: 9999;
+        }
+        #dustAvg_div {
+            left: 790px;
+            bottom: 3px;
+            position: absolute;
+            z-index: 9999;
+        }
+        #wind_lengend_div {
+            top: 10px;
+            left: 530px;
+            position: absolute;
+            z-index: 9999;
+        }
+        #slp_lengend_div {
+            top: 10px;
+            left: 150px;
+            position: absolute;
+            z-index: 9999;
+        }
+        #dust_lengend_div {
+            top: 360px;
+            left: 150px;
+            position: absolute;
+            z-index: 9999;
+        }
+        #dust_level_div {
+            top: 75px;
+            left: 150px;
+            position: absolute;
+            z-index: 9999;
+        }
+        .editor-menu-hidden {
+            display: none;
+        }
+        .editor-menu-visible {
+            background-color: #bfbfbf;
+            top: 15%;
+            left: 10px;
+            position: fixed;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0px;
+            margin: 0px;
+        }
+        .editor-button {
+            width: 40px;
+            height: 40px;
+            background: no-repeat center center;
+            background-size: contain;
+            border: none;
+            cursor: pointer;
+            margin: 2px;
+            padding: 0;
+            transition: transform 0.1s ease;
+        }
+        .editor-button:active {
+            transform: scale(0.9);
+        }
+        .plant-button {
+            background-image: url('../static/icons/plant.svg');
+        }
+        .dune-button {
+            background-image: url('../static/icons/dune.svg');
+        }
+        .water-button {
+            background-image: url('../static/icons/water.svg');
+        }
+        .undo-button {
+            background-image: url('../static/icons/undo.svg');
+        }
+        .complete-button {
+            background-image: url('../static/icons/check.svg');
+        }
+        .delete-button {
+            background-image: url('../static/icons/cross.svg');
+        }
+        .square-button {
+            background-image: url('../static/icons/square.svg');
+        }
+        .select-button {
+            background-image: url('../static/icons/select.svg');
+        }
+        .terrian-button {
+            background-image: url('../static/icons/terrian.svg');
+        }
+        .model-button {
+            background-image: url('../static/icons/chip.svg');
+        }
+        .node circle {
+            fill: #008450;
+            stroke: #fff;
+            stroke-width: 3px;
+        }
+        .node text {
+            font: 12px sans-serif;
+            fill: #fff;
+        }
+        .node.selected circle {
+            stroke: #ff5733;
+        }
+        .node.new circle {
+            fill: #EFB700;
+        }
+        .node.running circle {
+            fill: #005A8C;
+        }
+        .link {
+            fill: none;
+            stroke: #ccc;
+            stroke-width: 2px;
+        }
+        .terrian-tree-hidden {
+            display: none;
+        }
+        .terrian-tree-visible {
+            background-color: rgba(0, 0, 0, .8);
+            left: 350px;
+            bottom: 5px;
+            position: absolute;
+            z-index: 9999;
+            line-height: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+    <div id="rf_div"></div>
+    <div id="model_comparision_div" class="model-comparision-hidden"></div>
+    <div id="timeSeries_div"></div>
+    <div id="dustAvg_div"></div>
+    <div id="erod_lengend_div"></div>
+    <div id="slp_lengend_div"></div>
+    <div id="dust_lengend_div"></div>
+    <div id="dust_level_div"></div>
+    <div id="wind_lengend_div"></div>
+    <div id="terrian_tree_div" class="terrian-tree-hidden">
+        <svg id="terrian_tree_svg" width="400" height="200"></svg>
+    </div>
+    <div id="editor_menu_div" class="editor-menu-hidden">
+        <button class="editor-button plant-button" onclick="plantArea()"></button>
+        <button class="editor-button dune-button" onclick="erosionArea()"></button>
+        <button class="editor-button water-button" onclick="waterArea()"></button>
+        <button class="editor-button undo-button" onclick="revertLastClicking()"></button>
+        <button class="editor-button complete-button" onclick="completeArea()"></button>
+        <button class="editor-button delete-button" onclick="deleteArea()"></button>
+        <button class="editor-button square-button" onclick="moveBackground()"></button>
+        <button class="editor-button select-button" onclick="selectPolygon()"></button>
+        <button class="editor-button terrian-button" onclick="newTerrian()"></button>
+        <button class="editor-button model-button" onclick="finishTerian()"></button>
+    </div>
+    <script>
+        let DUST_SWITCH = false; WIND_SWITCH = false;
+        let LAT_SLICE_SWITCH = false, LNG_SLICE_SWITCH = false;
+        let SEA_LEVEL_PRESSURE_SWITCH = false;
+        let RF_SWITCH = false;
+        let AVG_DUST_BRUSH_SWITCH = false, TERRIAN_EDITOR_SWITCH = false;
+        async function menu() {
+            let menu = d3.select('body').append('div')
+                .attr('class', 'menu')
+                .attr('id', 'menu')
+            let dustSwitchBtn = menu.append('button')
+                .attr('class', 'link')
+                .attr('id', 'dust-switch')
+                .html('Dust Concentration')
+                .style('color', () => {
+                    if (DUST_SWITCH) return '#aaa';
+                    else return '#fff';
+                })
+                .on('click', function () {
+                    if (!DUST_SWITCH) {
+                        DUST_SWITCH = true;
+                        dustSVG(DUST_SWITCH);
+                        d3.select(this).style('color', '#aaa');
+                    } else {
+                        DUST_SWITCH = false;
+                        dustSVG(DUST_SWITCH);
+                        d3.select(this).style('color', '#fff');
+                    }
+                });
+            menu.append('text')
+                .text('|')
+                .attr("font-family", "sans-serif")
+                .attr("font-size", "14px")
+                .style("color", "white");
+            menu.append('button')
+                .attr('class', 'link')
+                .html('Dust resolution: ')
+                .style("color", "#fff");
+            menu.append('input')
+                .attr('id', `resolution`)
+                .attr('maxlength', "4")
+                .attr('size', "4")
+                .attr('value', 0.25);
+            menu.append('br');
+            let latSwitchBtn = menu.append('button')
+                .attr('class', 'link')
+                .attr('id', 'latSlice-switch')
+                .html('Dust by Latitude')
+                .style('color', '#fff')
+                .on('click', function () {
+                    if (!LAT_SLICE_SWITCH) {
+                        LAT_SLICE_SWITCH = true;
+                        drawLineOnMap(LAT_SLICE_SWITCH, LNG_SLICE_SWITCH);
+                        renderDustAtLat(LAT_INDEX, LAT_SLICE_SWITCH);
+                        d3.select(this).style('color', '#aaa');
+                    } else {
+                        LAT_SLICE_SWITCH = false;
+                        drawLineOnMap(LAT_SLICE_SWITCH, LNG_SLICE_SWITCH);
+                        renderDustAtLat(LAT_INDEX, LAT_SLICE_SWITCH);
+                        d3.select(this).style('color', '#fff');
+                    }
+                });
+            let lngSwitchBtn = menu.append('button')
+                .attr('class', 'link')
+                .attr('id', 'lngSlice-switch')
+                .html('Dust by Longitude')
+                .style('color', '#fff')
+                .on('click', function () {
+                    if (!LNG_SLICE_SWITCH) {
+                        LNG_SLICE_SWITCH = true;
+                        drawLineOnMap(LAT_SLICE_SWITCH, LNG_SLICE_SWITCH);
+                        renderDustAtLng(LNG_INDEX, LNG_SLICE_SWITCH);
+                        d3.select(this).style('color', '#aaa');
+                    } else {
+                        LNG_SLICE_SWITCH = false;
+                        drawLineOnMap(LAT_SLICE_SWITCH, LNG_SLICE_SWITCH);
+                        renderDustAtLng(LNG_INDEX, LNG_SLICE_SWITCH);
+                        d3.select(this).style('color', '#fff');
+                    }
+                });
+            menu.append('br');
+            let windSwitchBtn = menu.append('button')
+                .attr('class', 'link')
+                .attr('id', 'wind-switch')
+                .html('Wind')
+                .style('color', '#fff')
+                .on('click', function () {
+                    if (!WIND_SWITCH) {
+                        WIND_SWITCH = true;
+                        d3.select(this).style('color', '#aaa');
+                    } else {
+                        WIND_SWITCH = false; // windSVG(WIND_SWITCH);
+                        d3.select(this).style('color', '#fff');
+                    }
+                    windSVG(WIND_SWITCH);
+                });
+            menu.append('text')
+                .text('|')
+                .attr("font-family", "sans-serif")
+                .attr("font-size", "14px")
+                .style("color", "white");
+            menu.append('button')
+                .attr('class', 'link')
+                .html('Wind resolution: ')
+                .style("color", "white");
+            menu.append('input')
+                .attr('id', `windResolution`)
+                .attr('maxlength', "6")
+                .attr('size', "6")
+                .attr('value', 0.004);
+            menu.append('br');
+            let slpSwitchBtn = menu.append('button')
+                .attr('class', 'link')
+                .attr('id', 'slp-switch')
+                .html('Sea level pressure')
+                .style('color', '#fff')
+                .on('click', function () {
+                    if (!SEA_LEVEL_PRESSURE_SWITCH) {
+                        SEA_LEVEL_PRESSURE_SWITCH = true;
+                        d3.select(this).style('color', '#aaa');
+                    } else {
+                        SEA_LEVEL_PRESSURE_SWITCH = false;
+                        d3.select(this).style('color', '#fff');
+                    }
+                    contourSVG('slp', SEA_LEVEL_PRESSURE_SWITCH);
+                });
+            menu.append('br');
+            menu.append('button')
+                .attr('class', 'link')
+                .attr('id', 'rf_switch')
+                .html('Radiative Forcing')
+                .style('color', '#fff')
+                .on('click', function () {
+                    if (!RF_SWITCH) {
+                        RF_SWITCH = true;
+                        d3.select(this).style('color', '#aaa');
+                    } else {
+                        RF_SWITCH = false;
+                        d3.select(this).style('color', '#fff');
+                    }
+                    renderRF(RF_SWITCH);
+                });
+            menu.append('br');
+            menu.append('button')
+                .attr('class', 'link')
+                .attr('id', 'menu-time')
+                .html(`Time: ${TIME[TIME_INDEX]}`)
+                .style('color', '#fff');
+            menu.append('button')
+                .attr('class', 'time')
+                .attr('id', 'time-prev')
+                .html('&#x23EE;')
+                .style('color', '#fff')
+                .on('click', function () {
+                    TIME_INDEX = TIME_INDEX < 0 ? 0 : TIME_INDEX - 1;
+                    d3.select('#menu-time')
+                        .html(`Time: ${TIME[TIME_INDEX]}`);
+                    reRender();
+                })
+            let timerId, animate = false;
+            menu.append('button')
+                .attr('class', 'time')
+                .html('&#x23ED;')
+                .style('color', '#fff')
+                .on('click', function () {
+                    animate = !animate;
+                    if (animate && TIME_INDEX < TIME.length) {
+                        timerId = setInterval(() => {
+                            reRender();
+                            d3.select('#menu-time')
+                                .html(`Time: ${TIME[TIME_INDEX]}`);
+                            TIME_INDEX = TIME_INDEX + 1;
+                        }, 1000);
+                    } else {
+                        clearInterval(timerId);
+                    }
+
+                })
+            menu.append('button')
+                .attr('class', 'time')
+                .html('&#x23EF;')
+                .style('color', '#fff')
+                .on('click', function () {
+                    TIME_INDEX = TIME_INDEX < TIME.length ? TIME_INDEX + 1 : TIME_INDEX - 1;
+                    d3.select('#menu-time')
+                        .html(`Time: ${TIME[TIME_INDEX]}`);
+                    reRender();
+                })
+            menu.append('br');
+            menu.append('button')
+                .attr('class', 'link')
+                .attr('id', 'avgdust-switch')
+                .html('Average Dust Concentration')
+                .style('color', '#fff')
+                .on('click', function () {
+                    if (BRUSH_GROUP == undefined) {
+                        if (brushOnMap())
+                            d3.select(this).style('color', '#aaa');
+                    } else {
+                        closeBrushOnMap();
+                        d3.select(this).style('color', '#fff');
+                    }
+                });
+            menu.append('br');
+            menu.append('button')
+                .attr('class', 'link')
+                .attr('id', 'terrianeditor-switch')
+                .html('Model Terrian Editor')
+                .style('color', '#fff')
+                .on('click', function () {
+                    if (POLYGON_GROUP == undefined) {
+                        if (editorMenu())
+                            d3.select(this).style('color', '#aaa');
+                    } else {
+                        closeEditorMenu();
+                        d3.select(this).style('color', '#fff');
+                    }
+                });
+            menu.append('text')
+                .text('|')
+                .attr("font-family", "sans-serif")
+                .attr("font-size", "14px")
+                .style("color", "white");
+            menu.append('button')
+                .attr('class', 'link')
+                .html('Model Comparison')
+                .style('color', '#fff')
+                .on('click', function () {
+                    if (!MODEL_COMPARISION) {
+                        MODEL_COMPARISION = true;
+                        updateModelComparision([0, 1]);
+                        d3.select('#model_comparision_div').attr('class', 'model-comparision-visible');
+                        d3.select(this).style('color', '#aaa');
+                    } else {
+                        d3.select('#model_comparision_div').attr('class', 'model-comparision-hidden');
+                        d3.select(this).style('color', '#fff');
+                        MODEL_COMPARISION = false;
+                    }
+                });
+        }
+    </script>
+</body>
+
+</html>
