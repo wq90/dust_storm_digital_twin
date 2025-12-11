@@ -7,7 +7,7 @@ __pycache__/
 
 *.nc
 
-# data/
+data/
 
 # Flask stuff:
 instance/
