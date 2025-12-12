@@ -68,22 +68,6 @@ def dust_lat():
     f.close()
     return lat.tolist()
 
-@dust_data_bp.route("/dust_lon_old")
-def dust_lon_old():
-    dustfile_old = "tot_Dust_gocart_old.nc"
-    f = Dataset(f"{current_app.root_path}/data/0/{dustfile_old}")
-    lon = f.variables["lon"][:]
-    f.close()
-    return lon.tolist()
-
-@dust_data_bp.route("/dust_lat_old")
-def dust_lat_old():
-    dustfile_old = "tot_Dust_gocart_old.nc"
-    f = Dataset(f"{current_app.root_path}/data/0/{dustfile_old}")
-    lat = f.variables["lat"][:]
-    f.close()
-    return lat.tolist()
-
 @dust_data_bp.route("/max_dust/<int:task_no>")
 def dust_max(task_no=0):
     f = Dataset(f"{current_app.root_path}/data/{task_no}/{dustfile}")
