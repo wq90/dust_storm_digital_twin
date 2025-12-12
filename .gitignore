@@ -4,8 +4,8 @@ __pycache__/
 *$py.class
 
 *.mp4
-
-*.nc
+*.zip
+#*.nc
 
 #data/
 
