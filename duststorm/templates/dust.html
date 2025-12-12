@@ -1,5 +1,6 @@
 <!doctype html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <title>Dust</title>
@@ -32,16 +33,19 @@
             --slng: -1;
             --slat: -1;
         }
+
         body {
             margin: 0;
             overflow-x: hidden;
             /* font: 0.9em/1.2 Arial, Helvetica, sans-serif; */
             position: relative;
         }
+
         #map {
             height: 100vh;
             position: relative;
         }
+
         #lat_slice {
             position: absolute;
             top: var(--lat-top);
@@ -51,6 +55,7 @@
             z-index: 9999;
             background-color: whitesmoke;
         }
+
         #lng_slice {
             position: absolute;
             top: var(--lon-top);
@@ -60,18 +65,21 @@
             z-index: 9999;
             background-color: whitesmoke;
         }
+
         button.link {
             background: none;
             border: none;
             font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
             font-size: 13px;
         }
+
         button.time {
             background: none;
             border: none;
             font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
             font-size: 20px;
         }
+
         .menu {
             position: absolute;
             bottom: 5px;
@@ -81,15 +89,18 @@
             height: 200px;
             z-index: 9999;
         }
+
         #rf_div {
             right: 10px;
             bottom: 3px;
             position: absolute;
             z-index: 9999;
         }
+
         .model-comparision-hidden {
             display: none;
         }
+
         .model-comparision-visible {
             /* right: 50px;
             top: 140px; */
@@ -99,57 +110,67 @@
             z-index: 9999;
             line-height: 0;
         }
+
         #select_btn_0 {
             position: absolute;
             bottom: 10px;
             left: 200px;
             z-index: 1;
         }
+
         #select_btn_1 {
             position: absolute;
             bottom: 10px;
             right: 210px;
             z-index: 1;
         }
+
         #timeSeries_div {
             right: 619px;
             bottom: 3px;
             position: absolute;
             z-index: 9999;
         }
+
         #dustAvg_div {
             left: 790px;
             bottom: 3px;
             position: absolute;
             z-index: 9999;
         }
+
         #wind_lengend_div {
             top: 10px;
             left: 530px;
             position: absolute;
             z-index: 9999;
         }
+
         #slp_lengend_div {
             top: 10px;
             left: 150px;
             position: absolute;
             z-index: 9999;
         }
+
         #dust_lengend_div {
             top: 360px;
             left: 150px;
             position: absolute;
             z-index: 9999;
         }
+
         #dust_level_div {
             top: 75px;
             left: 150px;
             position: absolute;
             z-index: 9999;
         }
+
         .editor-menu-hidden {
             display: none;
         }
+
         .editor-menu-visible {
             background-color: #bfbfbf;
             top: 15%;
@@ -162,6 +183,7 @@
             gap: 0px;
             margin: 0px;
         }
+
         .editor-button {
             width: 40px;
             height: 40px;
@@ -173,65 +195,84 @@
             padding: 0;
             transition: transform 0.1s ease;
         }
+
         .editor-button:active {
             transform: scale(0.9);
         }
+
         .plant-button {
             background-image: url('../static/icons/plant.svg');
         }
+
         .dune-button {
             background-image: url('../static/icons/dune.svg');
         }
+
         .water-button {
             background-image: url('../static/icons/water.svg');
         }
+
         .undo-button {
             background-image: url('../static/icons/undo.svg');
         }
+
         .complete-button {
             background-image: url('../static/icons/check.svg');
         }
+
         .delete-button {
             background-image: url('../static/icons/cross.svg');
         }
+
         .square-button {
             background-image: url('../static/icons/square.svg');
         }
+
         .select-button {
             background-image: url('../static/icons/select.svg');
         }
+
         .terrian-button {
             background-image: url('../static/icons/terrian.svg');
         }
+
         .model-button {
             background-image: url('../static/icons/chip.svg');
         }
+
         .node circle {
             fill: #008450;
             stroke: #fff;
             stroke-width: 3px;
         }
+
         .node text {
             font: 12px sans-serif;
             fill: #fff;
         }
+
         .node.selected circle {
             stroke: #ff5733;
         }
+
         .node.new circle {
             fill: #EFB700;
         }
+
         .node.running circle {
             fill: #005A8C;
         }
+
         .link {
             fill: none;
             stroke: #ccc;
             stroke-width: 2px;
         }
+
         .terrian-tree-hidden {
             display: none;
         }
+
         .terrian-tree-visible {
             background-color: rgba(0, 0, 0, .8);
             left: 350px;
@@ -423,7 +464,7 @@
                 .html('&#x23EE;')
                 .style('color', '#fff')
                 .on('click', function () {
-                    TIME_INDEX = TIME_INDEX < 0 ? 0 : TIME_INDEX - 1;
+                    TIME_INDEX = TIME_INDEX - 1 < 0 ? 0 : TIME_INDEX - 1;
                     d3.select('#menu-time')
                         .html(`Time: ${TIME[TIME_INDEX]}`);
                     reRender();
@@ -435,12 +476,17 @@
                 .style('color', '#fff')
                 .on('click', function () {
                     animate = !animate;
-                    if (animate && TIME_INDEX < TIME.length) {
+                    if (animate) {
                         timerId = setInterval(() => {
                             reRender();
                             d3.select('#menu-time')
                                 .html(`Time: ${TIME[TIME_INDEX]}`);
-                            TIME_INDEX = TIME_INDEX + 1;
+                            if (TIME_INDEX < TIME.length - 1) {
+                                TIME_INDEX = TIME_INDEX + 1;
+                            } else {
+                                animate = !animate;
+                                clearInterval(timerId);
+                            }
                         }, 1000);
                     } else {
                         clearInterval(timerId);
@@ -452,7 +498,7 @@
                 .html('&#x23EF;')
                 .style('color', '#fff')
                 .on('click', function () {
-                    TIME_INDEX = TIME_INDEX < TIME.length ? TIME_INDEX + 1 : TIME_INDEX - 1;
+                    TIME_INDEX = TIME_INDEX + 1 == TIME.length ? TIME_INDEX : TIME_INDEX + 1;
                     d3.select('#menu-time')
                         .html(`Time: ${TIME[TIME_INDEX]}`);
                     reRender();
