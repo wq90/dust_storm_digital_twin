@@ -26,7 +26,7 @@ All visualizations in this framework are fully data-driven and generated dynamic
     
     /duststorm/data/
 
-Due to the large data volume used in this study (e.g., the case study generated over **160 GB** of simulation data), the complete dataset is not distributed with this repository. Instead, a **one-hour subset** of the case study simulation presented in the paper is included to allow users to run and evaluate the framework’s core functionalities.
+Due to the large data volume used in this study (e.g., the case study generated over **160 GB** of simulation data), the complete dataset is not distributed with this repository. Instead, a **one-hour subset** of the case study simulation tasks presented in the paper is included to allow users to run and evaluate the framework’s functionalities.
 
 Mask files for the simulations are not included due to data size limitations. While this does not restrict the creation of new scenarios or tasks, it may prevent the execution of new tasks that depend on these mask files.
 
